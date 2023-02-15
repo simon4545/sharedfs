@@ -1,0 +1,49 @@
+edition: 1.0.0          
+name: sharedfs
+access: default
+
+vars:
+  region: cn-hangzhou
+  service:
+    name: sharedfs
+    description: 'A Simple, Safe Comment System inspired by Valine'
+
+services:
+  framework:
+    component: fc
+    actions:
+      pre-deploy:
+        - run: npm i -g hexo-cli
+          path: ./
+        - run: npm config set registry https://registry.npm.taobao.org
+          path: ./
+        - run: npm install
+          path: ./
+        - run: hexo g
+          path: ./
+        - plugin: website-fc
+    props:
+      region: ${vars.region}
+      service: ${vars.service}
+      function:
+        name: ${vars.service.name}
+        description: ${vars.service.description}
+        codeUri: ./public
+        timeout: 30
+        memorySize: 512
+      triggers:
+        - name: http-trigger
+          type: https
+          config:
+            authType: anonymous
+            methods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - PATCH
+      customDomains:
+        - domainName: auto
+          protocol: HTTP
+          routeConfigs:
+            - path: /*
